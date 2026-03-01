@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "Internal status page dashboard for a district IT team. No login required for viewers. Techs can log in to the admin panel to post and update incidents and resolutions. Simple, clean UI visible across the district.",
+  "architectural_notes": [
+    "Public read-only view; no authentication needed for viewers",
+    "Admin panel now requires login authentication; techs must log in to create/update incidents"
+  ],
+  "known_issues": [
+    "Dashboard incorrectly shows 'no incidents' or stale state even after incidents are added via the admin panel"
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-build-a-public-facing-status-dashboard-page-that-displays-all-active-and-resolved-incidents-grouped-by-status-show-each-incident-s-title-affected-system-severity-current-status-last-updated-time-and-its-update-timeline-active-incidents-should-appear-prominently-at-the-top-no-login-is-required-to-view-this-page",
+      "title": "Build a public-facing status dashboard page that displays all active and resolved incidents grouped by status. Show each incident's title, affected system, severity, current status, last updated time, and its update timeline. Active incidents should appear prominently at the top. No login is required to view this page.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-technician-admin-panel-accessible-via-a-distinct-route-e-g-admin-that-allows-techs-to-create-new-incidents-add-update-messages-to-existing-incidents-and-change-the-status-of-incidents-no-authentication-gate-is-required-but-the-admin-panel-should-be-clearly-separated-from-the-public-view",
+      "title": "Build a technician admin panel accessible via a distinct route (e.g., /admin) that allows techs to create new incidents, add update messages to existing incidents, and change the status of incidents. No authentication gate is required, but the admin panel should be clearly separated from the public view.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-clean-professional-visual-theme-suited-for-an-internal-it-operations-tool-use-a-dark-or-neutral-system-monitor-aesthetic-with-clear-status-color-coding-red-for-critical-orange-for-major-yellow-for-minor-and-green-for-resolved-informational-typography-should-be-sharp-and-legible-layout-should-prioritize-at-a-glance-readability-with-minimal-clutter",
+      "title": "Apply a clean, professional visual theme suited for an internal IT operations tool. Use a dark or neutral system-monitor aesthetic with clear status color coding: red for critical, orange for major, yellow for minor, and green for resolved/informational. Typography should be sharp and legible. Layout should prioritize at-a-glance readability with minimal clutter.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-gate-the-admin-route-behind-internet-identity-authentication-users-who-are-not-logged-in-must-see-a-login-prompt-instead-of-the-admin-panel-content-once-authenticated-via-internet-identity-the-full-admin-panel-is-accessible-provide-a-visible-login-button-and-a-logout-option-once-authenticated",
+      "title": "Gate the /admin route behind Internet Identity authentication. Users who are not logged in must see a login prompt instead of the admin panel content. Once authenticated via Internet Identity, the full admin panel is accessible. Provide a visible login button and a logout option once authenticated.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-public-facing-dashboard-so-that-it-correctly-reflects-the-current-state-of-incidents-after-they-are-created-or-updated-via-the-admin-panel-the-dashboard-must-not-show-a-no-incidents-or-stale-state-when-incidents-exist-in-the-backend-ensure-the-react-query-cache-for-getallincidents-is-properly-invalidated-or-refetched-after-mutations-and-that-the-dashboard-always-displays-the-latest-data-on-load-and-after-polling",
+      "title": "Fix the public-facing Dashboard so that it correctly reflects the current state of incidents after they are created or updated via the admin panel. The dashboard must not show a 'no incidents' or stale state when incidents exist in the backend. Ensure the React Query cache for getAllIncidents is properly invalidated or refetched after mutations, and that the dashboard always displays the latest data on load and after polling.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Display active and resolved incidents on the status dashboard",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Allow techs to create, update, and resolve incidents",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "No login required for read-only viewers; accessible internally across the district",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Create a backend data model and actor to store incidents. Each incident must have: a unique ID, title, description, affected service/system, severity level (critical, major, minor, informational), status (investigating, identified, monitoring, resolved), timestamps for creation and last update, and an array of update entries (each with a message and timestamp). Provide CRUD operations: create incident, add update to incident, change incident status, and list all incidents.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add login authentication to the admin panel so only authorized techs can access and update incidents",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "District Status Page",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "build_request",
+  "title": "Fix dashboard not refreshing after incidents are added",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-6",
+      "text": "Fix the public-facing Dashboard so that it correctly reflects the current state of incidents after they are created or updated via the admin panel. The dashboard must not show a 'no incidents' or stale state when incidents exist in the backend. Ensure the React Query cache for getAllIncidents is properly invalidated or refetched after mutations, and that the dashboard always displays the latest data on load and after polling.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "the dashboard seems to be broken. It keeps saying there is are incidents being reported even after I added one."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After creating an incident in the admin panel, the public dashboard reflects the new incident without requiring a manual page reload.",
+        "The dashboard does not display a 'no incidents' or empty state when one or more incidents exist in the backend.",
+        "The getAllIncidents React Query hook fetches fresh data on mount and invalidates correctly after any create/update/status-change mutation.",
+        "Active incidents appear in the active section and resolved incidents appear in the resolved section with correct grouping."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts.",
+    "Do not change the backend data model or Motoko actor logic unless a backend bug is identified as the root cause."
+  ],
+  "nonGoals": [
+    "Adding new incident fields or changing the data model.",
+    "Changing the visual theme or layout of the dashboard.",
+    "Adding real-time WebSocket updates."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
