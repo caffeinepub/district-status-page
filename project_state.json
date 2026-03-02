@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 23,
   "summary": "Internal status page dashboard for a district IT team. No login required for viewers. Techs can log in to the admin panel to post and update incidents and resolutions. Simple, clean UI visible across the district.",
   "architectural_notes": [
     "Public read-only view; no authentication needed for viewers",
@@ -108,6 +108,14 @@
         "REQ-15"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-remove-the-search-filter-input-and-all-associated-filtering-logic-from-the-public-facing-dashboard-page-frontend-src-pages-dashboard-tsx-delete-any-search-state-filter-handlers-and-keyword-matching-code-that-filters-incidents-by-title-affected-system-service-or-description-the-dashboard-should-display-all-active-and-resolved-incidents-directly-without-any-filtering-controls-both-the-active-and-resolved-incident-sections-must-render-their-full-lists-unconditionally",
+      "title": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page (frontend/src/pages/Dashboard.tsx). Delete any search state, filter handlers, and keyword-matching code that filters incidents by title, affected system/service, or description. The Dashboard should display all active and resolved incidents directly without any filtering controls. Both the active and resolved incident sections must render their full lists unconditionally.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -140,12 +148,6 @@
     {
       "id": "AR-5",
       "summary": "Add login authentication to the admin panel so only authorized techs can access and update incidents",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Add search/filter functionality to the dashboard to filter incidents by keyword",
       "reqIds": [],
       "status": "pending"
     },

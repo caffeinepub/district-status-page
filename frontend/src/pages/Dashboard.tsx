@@ -1,41 +1,16 @@
-import { useState } from "react";
-import { Search, AlertCircle, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { AlertCircle, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IncidentCard } from "@/components/IncidentCard";
 import { useGetAllIncidents } from "@/hooks/useQueries";
-import { Status, Severity } from "../backend";
+import { Status } from "../backend";
 
 export default function Dashboard() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [severityFilter, setSeverityFilter] = useState<string>("all");
-
   const { data: incidents, isLoading, isError, error, refetch, isFetching } = useGetAllIncidents();
 
-  const filteredIncidents = (incidents ?? []).filter((incident) => {
-    const matchesSearch =
-      search === "" ||
-      incident.title.toLowerCase().includes(search.toLowerCase()) ||
-      incident.affectedService.toLowerCase().includes(search.toLowerCase()) ||
-      incident.description.toLowerCase().includes(search.toLowerCase());
+  const allIncidents = incidents ?? [];
 
-    const matchesStatus =
-      statusFilter === "all" || incident.status === statusFilter;
-
-    const matchesSeverity =
-      severityFilter === "all" || incident.severity === severityFilter;
-
-    return matchesSearch && matchesStatus && matchesSeverity;
-  });
-
-  const activeIncidents = filteredIncidents.filter(
-    (i) => i.status !== Status.resolved
-  );
-  const resolvedIncidents = filteredIncidents.filter(
-    (i) => i.status === Status.resolved
-  );
+  const activeIncidents = allIncidents.filter((i) => i.status !== Status.resolved);
+  const resolvedIncidents = allIncidents.filter((i) => i.status === Status.resolved);
 
   const isLoadingState = isLoading || isFetching;
 
@@ -49,43 +24,6 @@ export default function Dashboard() {
         <p className="text-muted-foreground text-sm">
           Real-time status of all services and ongoing incidents.
         </p>
-      </div>
-
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search incidents..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 font-mono text-sm"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value={Status.investigating}>Investigating</SelectItem>
-            <SelectItem value={Status.identified}>Identified</SelectItem>
-            <SelectItem value={Status.monitoring}>Monitoring</SelectItem>
-            <SelectItem value={Status.resolved}>Resolved</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Severity" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Severities</SelectItem>
-            <SelectItem value={Severity.critical}>Critical</SelectItem>
-            <SelectItem value={Severity.major}>Major</SelectItem>
-            <SelectItem value={Severity.minor}>Minor</SelectItem>
-            <SelectItem value={Severity.informational}>Informational</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Loading State */}

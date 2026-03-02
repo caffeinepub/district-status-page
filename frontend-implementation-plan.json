@@ -1,55 +1,24 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Emergency fix: frontend-to-backend connection completely broken after Version 9",
+  "title": "Remove search/filter feature from Dashboard",
   "requirements": [
     {
-      "id": "REQ-15",
-      "summary": "Perform a ground-up rewrite of the frontend-to-backend wiring to ensure reliable actor initialization, unconditional query execution for anonymous users, correct provider ordering, and visible error surfacing",
+      "id": "REQ-16",
+      "summary": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page. The Dashboard should display all active and resolved incidents directly without any filtering controls.",
       "acceptanceCriteria": [
-        "Opening the Dashboard (/) on a fresh page load shows incidents fetched from the backend without any manual refresh.",
-        "The browser console shows the resolved canister ID logged at actor initialization time.",
-        "No 'Failed to load incidents / Unable to connect to the backend' error appears on either the Dashboard or Admin Panel.",
-        "The getAllIncidents query fires for anonymous (unauthenticated) users — it is never skipped due to a missing actor.",
-        "The Admin Panel login flow via Internet Identity still works correctly after these fixes.",
-        "The light/dark mode ThemeToggle remains functional and does not interfere with actor initialization or query execution.",
-        "The app does not crash or render a blank screen on initial load."
+        "The Dashboard page contains no search input or filter controls",
+        "No search/filter state variables exist in the Dashboard component",
+        "All active incidents are displayed without any keyword filtering applied",
+        "All resolved incidents are displayed without any keyword filtering applied",
+        "The 'no results' message tied to the search feature is removed",
+        "Removing the search feature does not introduce any new console errors or rendering issues"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActorWrapper.ts",
-          "operation": "create",
-          "description": "Create a new non-immutable wrapper hook that calls the immutable useActor hook and ensures a non-null actor is always returned. If useActor returns null or undefined, create a synchronous fallback actor using HttpAgent with anonymous identity. Log the resolved canister ID to the browser console at initialization time. This wrapper satisfies the constraint that useActor.ts itself is immutable while fixing the actor initialization flow."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Replace all calls to useActor() with useActorWrapper() at the top of every hook. Assert that the actor is non-null before passing it to React Query's queryFn. Remove any enabled guards like `enabled: !!actor` that would skip queries for anonymous users. In the getAllIncidents hook specifically, ensure the query runs unconditionally on every page load. Surface raw error messages in the query's error state so failures are visible in the UI (return error.message or String(error) in onError callbacks or error transformers)."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Verify and enforce the exact provider nesting order: ThemeProvider (outermost) → QueryClientProvider → InternetIdentityProvider → RouterProvider (innermost). Ensure no hooks are called outside of a valid provider context. Review the current structure and adjust if necessary to match this required order exactly."
-        },
-        {
-          "path": "frontend/src/main.tsx",
-          "operation": "modify",
-          "description": "Review the root mounting logic to ensure all provider wrappers are correctly established before rendering the App component. Confirm that QueryClientProvider and InternetIdentityProvider are present and correctly ordered in the provider tree. If any provider is missing or incorrectly ordered relative to App.tsx, adjust the structure to support the required nesting."
-        },
-        {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Ensure the Dashboard page calls the updated useAllIncidents hook (which now uses useActorWrapper) without any conditional guards that would prevent the query from running for anonymous users. Verify that error states from the query are displayed in the UI so that connection failures surface a visible error message rather than silently failing."
-        },
-        {
-          "path": "frontend/src/pages/AdminPanel.tsx",
-          "operation": "modify",
-          "description": "Ensure the AdminPanel page calls the updated query hooks (which now use useActorWrapper) and that error states are properly displayed. Verify that the Internet Identity authentication flow still works correctly and does not interfere with actor initialization or query execution."
-        },
-        {
-          "path": "frontend/vite.config.ts",
-          "operation": "modify",
-          "description": "Confirm that the Vite environment variable for the backend canister ID (VITE_CANISTER_ID_BACKEND or equivalent) is correctly defined and exposed in the build config. Ensure the variable is referenced consistently in useActorWrapper and that it resolves correctly at build time and runtime."
+          "description": "Remove all search/filter UI controls (input field, filter dropdowns) and associated state variables (search query, status filter, severity filter) from the Dashboard component. Delete all keyword-matching and filtering logic that filters incidents by title, affected system/service, or description. Ensure both the active incidents section and resolved incidents section render their full lists unconditionally by directly mapping over the unfiltered incident arrays. Remove any conditional rendering tied to empty filter results (e.g., 'no results' messages specific to the search feature). Verify that the component still correctly splits incidents into active and resolved groups based on their status field."
         }
       ]
     }
