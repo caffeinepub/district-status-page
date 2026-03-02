@@ -1,13 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the search/filter feature from the public-facing Dashboard page.
+**Goal:** Add a search and filter bar to the public Dashboard page so users can quickly find incidents by keyword, severity, and status.
 
 **Planned changes:**
-- Remove the search input UI element and any filter controls from the Dashboard page
-- Delete all search/filter state variables and filter handler functions from the Dashboard component
-- Remove keyword-matching logic that filters incidents by title, affected system/service, or description
-- Remove the "no results" message tied to the search feature
-- Ensure both active and resolved incident lists render their full contents unconditionally
+- Add a text input to the Dashboard for keyword search, filtering incidents by title, description, or affected service (case-insensitive)
+- Add a severity filter control (critical, major, minor, informational)
+- Add a status filter control (investigating, identified, monitoring, resolved)
+- Apply all active filters simultaneously in real time, client-side, with no page reload
+- Filter both the active incidents section and the resolved incidents section independently
+- Clearing all filters restores the full incident list
+- Style filter controls consistently with the existing Dashboard design and theme
 
-**User-visible outcome:** The Dashboard displays all active and resolved incidents directly, with no search bar or filter controls present.
+**User-visible outcome:** Users on the public Dashboard can type a keyword and select severity/status filters to instantly narrow down the displayed incidents without reloading the page.

@@ -1,24 +1,26 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove search/filter feature from Dashboard",
+  "title": "Add filter/search option to Dashboard",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page. The Dashboard should display all active and resolved incidents directly without any filtering controls.",
+      "id": "REQ-1",
+      "summary": "Add client-side search and filter controls to the Dashboard page allowing users to filter incidents by keyword, severity, and status in real time",
       "acceptanceCriteria": [
-        "The Dashboard page contains no search input or filter controls",
-        "No search/filter state variables exist in the Dashboard component",
-        "All active incidents are displayed without any keyword filtering applied",
-        "All resolved incidents are displayed without any keyword filtering applied",
-        "The 'no results' message tied to the search feature is removed",
-        "Removing the search feature does not introduce any new console errors or rendering issues"
+        "A text input field is visible on the Dashboard for keyword search",
+        "Typing in the search field filters incidents whose title, description, or affected service contains the entered text (case-insensitive)",
+        "A severity filter control (e.g., dropdown or button group) allows filtering by critical, major, minor, or informational",
+        "A status filter control allows filtering by investigating, identified, monitoring, or resolved",
+        "Filters can be combined (e.g., keyword + severity + status applied simultaneously)",
+        "Both the active incidents section and the resolved incidents section are filtered independently",
+        "Clearing all filters restores the full incident list",
+        "Filter controls are styled consistently with the existing Dashboard design and theme"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Remove all search/filter UI controls (input field, filter dropdowns) and associated state variables (search query, status filter, severity filter) from the Dashboard component. Delete all keyword-matching and filtering logic that filters incidents by title, affected system/service, or description. Ensure both the active incidents section and resolved incidents section render their full lists unconditionally by directly mapping over the unfiltered incident arrays. Remove any conditional rendering tied to empty filter results (e.g., 'no results' messages specific to the search feature). Verify that the component still correctly splits incidents into active and resolved groups based on their status field."
+          "description": "Add filter state management (keyword, severity array, status array) using React useState. Insert a filter controls section above the incident lists containing a text input for keyword search, a multi-select or button group for severity filtering, and a multi-select or button group for status filtering. Implement client-side filtering logic that applies all active filters to the fetched incidents array before rendering the active and resolved sections. Ensure both active and resolved incident sections independently apply the same filter criteria. Style the filter controls using existing Tailwind classes and shadcn/ui components to match the current Dashboard theme."
         }
       ]
     }

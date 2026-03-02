@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-search-filter-input-and-all-associated-filtering-logic-from-the-public-facing-dashboard-page-frontend-src-pages-dashboard-tsx-delete-any-search-state-filter-handlers-and-keyword-matching-code-that-filters-incidents-by-title-affected-system-service-or-description-the-dashboard-should-display-all-active-and-resolved-incidents-directly-without-any-filtering-controls-both-the-active-and-resolved-incident-sections-must-render-their-full-lists-unconditionally",
-      "featureTitle": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page (frontend/src/pages/Dashboard.tsx). Delete any search state, filter handlers, and keyword-matching code that filters incidents by title, affected system/service, or description. The Dashboard should display all active and resolved incidents directly without any filtering controls. Both the active and resolved incident sections must render their full lists unconditionally.",
+      "featureId": "feature-add-a-search-filter-bar-to-the-public-dashboard-page-that-allows-users-to-filter-visible-incidents-by-keyword-matching-title-description-or-affected-service-severity-and-status-the-filter-controls-should-update-the-displayed-incident-list-in-real-time-without-requiring-a-page-reload",
+      "featureTitle": "Add a search/filter bar to the public Dashboard page that allows users to filter visible incidents by keyword (matching title, description, or affected service), severity, and status. The filter controls should update the displayed incident list in real time without requiring a page reload.",
       "files": [
         "frontend/src/pages/Dashboard.tsx"
       ],
@@ -15,7 +15,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-1"
       ],
       "confidence": "high"
     }

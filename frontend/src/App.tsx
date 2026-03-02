@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import { AdminPanel } from "./pages/AdminPanel";
 import { Toaster } from "@/components/ui/sonner";
 
+// Query client with sensible defaults for the status page
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

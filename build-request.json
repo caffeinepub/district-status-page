@@ -1,42 +1,42 @@
 {
   "kind": "build_request",
-  "title": "Remove search/filter feature from Dashboard",
-  "projectName": "District IT Status Page",
+  "title": "Add filter/search option to Dashboard",
+  "projectName": "District Status Page",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-16",
-      "text": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page (frontend/src/pages/Dashboard.tsx). Delete any search state, filter handlers, and keyword-matching code that filters incidents by title, affected system/service, or description. The Dashboard should display all active and resolved incidents directly without any filtering controls. Both the active and resolved incident sections must render their full lists unconditionally.",
+      "id": "REQ-1",
+      "text": "Add a search/filter bar to the public Dashboard page that allows users to filter visible incidents by keyword (matching title, description, or affected service), severity, and status. The filter controls should update the displayed incident list in real time without requiring a page reload.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "Ok lets get rid of the search/filter feature. I think thats what broke this"
+          "Ok lets add the filter/search option again."
         ]
       },
       "acceptanceCriteria": [
-        "The Dashboard page contains no search input or filter controls",
-        "No search/filter state variables exist in the Dashboard component",
-        "All active incidents are displayed without any keyword filtering applied",
-        "All resolved incidents are displayed without any keyword filtering applied",
-        "The 'no results' message tied to the search feature is removed",
-        "Removing the search feature does not introduce any new console errors or rendering issues"
+        "A text input field is visible on the Dashboard for keyword search",
+        "Typing in the search field filters incidents whose title, description, or affected service contains the entered text (case-insensitive)",
+        "A severity filter control (e.g., dropdown or button group) allows filtering by critical, major, minor, or informational",
+        "A status filter control allows filtering by investigating, identified, monitoring, or resolved",
+        "Filters can be combined (e.g., keyword + severity + status applied simultaneously)",
+        "Both the active incidents section and the resolved incidents section are filtered independently",
+        "Clearing all filters restores the full incident list",
+        "Filter controls are styled consistently with the existing Dashboard design and theme"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths",
-    "Do not alter backend logic or the Motoko actor",
-    "Do not remove the delete button for resolved incidents in the Admin Panel",
-    "Do not remove the light/dark mode toggle from the Layout header"
+    "Do not modify backend logic — filtering must be done client-side on already-fetched incident data",
+    "Do not edit any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Adding any new filtering or search functionality",
-    "Changing the visual theme or layout beyond removing the search UI",
-    "Modifying the Admin Panel",
-    "Making any backend changes"
+    "Backend search or query endpoints",
+    "Saved/persistent filter preferences",
+    "Pagination or infinite scroll",
+    "Changes to AdminPanel"
   ],
   "imageRequirements": {
     "required": [],

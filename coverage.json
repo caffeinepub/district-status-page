@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T04:15:47.299Z",
+  "generatedAt": "2026-03-02T21:16:11.662Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,8 +11,8 @@
     "implemented": 1,
     "items": [
       {
-        "id": "REQ-16",
-        "summary": "Remove the search/filter input and all associated filtering logic from the public-facing Dashboard page (frontend/src/pages/Dashboard.tsx). Delete any search state, filter handlers, and keyword-matching code that filters incidents by title, affected system/service, or description. The Dashboard should display all active and resolved incidents directly without any filtering controls. Both the active and resolved incident sections must render their full lists unconditionally.",
+        "id": "REQ-1",
+        "summary": "Add a search/filter bar to the public Dashboard page that allows users to filter visible incidents by keyword (matching title, description, or affected service), severity, and status. The filter controls should update the displayed incident list in real time without requiring a page reload.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/Dashboard.tsx"
