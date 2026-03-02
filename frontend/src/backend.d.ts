@@ -23,6 +23,11 @@ export interface IncidentDTO {
     updates: Array<IncidentUpdate>;
     severity: Severity;
 }
+export enum DeleteIncidentResult {
+    notResolved = "notResolved",
+    notFound = "notFound",
+    success = "success"
+}
 export enum Severity {
     major = "major",
     minor = "minor",
@@ -39,6 +44,7 @@ export interface backendInterface {
     addUpdate(incidentId: string, title: string, description: string, affectedService: string, severity: Severity, message: string): Promise<IncidentDTO>;
     changeStatus(incidentId: string, title: string, description: string, affectedService: string, severity: Severity, newStatus: string): Promise<IncidentDTO>;
     createIncident(id: string, title: string, description: string, affectedService: string, severity: Severity): Promise<IncidentDTO>;
+    deleteIncident(id: string): Promise<DeleteIncidentResult>;
     getAllIncidents(): Promise<Array<IncidentDTO>>;
     getIncident(incidentId: string): Promise<IncidentDTO | null>;
     isIdAlreadyUsed(id: string): Promise<boolean>;

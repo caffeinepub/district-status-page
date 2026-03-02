@@ -36,6 +36,11 @@ export const IncidentDTO = IDL.Record({
   'updates' : IDL.Vec(IncidentUpdate),
   'severity' : Severity,
 });
+export const DeleteIncidentResult = IDL.Variant({
+  'notResolved' : IDL.Null,
+  'notFound' : IDL.Null,
+  'success' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   'addUpdate' : IDL.Func(
@@ -53,6 +58,7 @@ export const idlService = IDL.Service({
       [IncidentDTO],
       [],
     ),
+  'deleteIncident' : IDL.Func([IDL.Text], [DeleteIncidentResult], []),
   'getAllIncidents' : IDL.Func([], [IDL.Vec(IncidentDTO)], ['query']),
   'getIncident' : IDL.Func([IDL.Text], [IDL.Opt(IncidentDTO)], ['query']),
   'isIdAlreadyUsed' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
@@ -89,6 +95,11 @@ export const idlFactory = ({ IDL }) => {
     'updates' : IDL.Vec(IncidentUpdate),
     'severity' : Severity,
   });
+  const DeleteIncidentResult = IDL.Variant({
+    'notResolved' : IDL.Null,
+    'notFound' : IDL.Null,
+    'success' : IDL.Null,
+  });
   
   return IDL.Service({
     'addUpdate' : IDL.Func(
@@ -106,6 +117,7 @@ export const idlFactory = ({ IDL }) => {
         [IncidentDTO],
         [],
       ),
+    'deleteIncident' : IDL.Func([IDL.Text], [DeleteIncidentResult], []),
     'getAllIncidents' : IDL.Func([], [IDL.Vec(IncidentDTO)], ['query']),
     'getIncident' : IDL.Func([IDL.Text], [IDL.Opt(IncidentDTO)], ['query']),
     'isIdAlreadyUsed' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),

@@ -105,6 +105,11 @@ export interface IncidentDTO {
     updates: Array<IncidentUpdate>;
     severity: Severity;
 }
+export enum DeleteIncidentResult {
+    notResolved = "notResolved",
+    notFound = "notFound",
+    success = "success"
+}
 export enum Severity {
     major = "major",
     minor = "minor",
@@ -121,11 +126,12 @@ export interface backendInterface {
     addUpdate(incidentId: string, title: string, description: string, affectedService: string, severity: Severity, message: string): Promise<IncidentDTO>;
     changeStatus(incidentId: string, title: string, description: string, affectedService: string, severity: Severity, newStatus: string): Promise<IncidentDTO>;
     createIncident(id: string, title: string, description: string, affectedService: string, severity: Severity): Promise<IncidentDTO>;
+    deleteIncident(id: string): Promise<DeleteIncidentResult>;
     getAllIncidents(): Promise<Array<IncidentDTO>>;
     getIncident(incidentId: string): Promise<IncidentDTO | null>;
     isIdAlreadyUsed(id: string): Promise<boolean>;
 }
-import type { IncidentDTO as _IncidentDTO, IncidentUpdate as _IncidentUpdate, Severity as _Severity, Status as _Status, Time as _Time } from "./declarations/backend.did.d.ts";
+import type { DeleteIncidentResult as _DeleteIncidentResult, IncidentDTO as _IncidentDTO, IncidentUpdate as _IncidentUpdate, Severity as _Severity, Status as _Status, Time as _Time } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async addUpdate(arg0: string, arg1: string, arg2: string, arg3: string, arg4: Severity, arg5: string): Promise<IncidentDTO> {
@@ -170,32 +176,46 @@ export class Backend implements backendInterface {
             return from_candid_IncidentDTO_n3(this._uploadFile, this._downloadFile, result);
         }
     }
+    async deleteIncident(arg0: string): Promise<DeleteIncidentResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteIncident(arg0);
+                return from_candid_DeleteIncidentResult_n9(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteIncident(arg0);
+            return from_candid_DeleteIncidentResult_n9(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getAllIncidents(): Promise<Array<IncidentDTO>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllIncidents();
-                return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllIncidents();
-            return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
         }
     }
     async getIncident(arg0: string): Promise<IncidentDTO | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getIncident(arg0);
-                return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n12(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getIncident(arg0);
-            return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n12(this._uploadFile, this._downloadFile, result);
         }
     }
     async isIdAlreadyUsed(arg0: string): Promise<boolean> {
@@ -213,6 +233,9 @@ export class Backend implements backendInterface {
         }
     }
 }
+function from_candid_DeleteIncidentResult_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DeleteIncidentResult): DeleteIncidentResult {
+    return from_candid_variant_n10(_uploadFile, _downloadFile, value);
+}
 function from_candid_IncidentDTO_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _IncidentDTO): IncidentDTO {
     return from_candid_record_n4(_uploadFile, _downloadFile, value);
 }
@@ -222,7 +245,7 @@ function from_candid_Severity_n7(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_Status_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Status): Status {
     return from_candid_variant_n6(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_IncidentDTO]): IncidentDTO | null {
+function from_candid_opt_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_IncidentDTO]): IncidentDTO | null {
     return value.length === 0 ? null : from_candid_IncidentDTO_n3(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_record_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -258,6 +281,15 @@ function from_candid_record_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint
         severity: from_candid_Severity_n7(_uploadFile, _downloadFile, value.severity)
     };
 }
+function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    notResolved: null;
+} | {
+    notFound: null;
+} | {
+    success: null;
+}): DeleteIncidentResult {
+    return "notResolved" in value ? DeleteIncidentResult.notResolved : "notFound" in value ? DeleteIncidentResult.notFound : "success" in value ? DeleteIncidentResult.success : value;
+}
 function from_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     resolved: null;
 } | {
@@ -280,7 +312,7 @@ function from_candid_variant_n8(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): Severity {
     return "major" in value ? Severity.major : "minor" in value ? Severity.minor : "critical" in value ? Severity.critical : "informational" in value ? Severity.informational : value;
 }
-function from_candid_vec_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IncidentDTO>): Array<IncidentDTO> {
+function from_candid_vec_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IncidentDTO>): Array<IncidentDTO> {
     return value.map((x)=>from_candid_IncidentDTO_n3(_uploadFile, _downloadFile, x));
 }
 function to_candid_Severity_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Severity): _Severity {

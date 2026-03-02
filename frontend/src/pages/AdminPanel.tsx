@@ -9,16 +9,33 @@ import {
   LogOut,
   Lock,
   Loader2,
+  Trash2,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { CreateIncidentForm } from '../components/CreateIncidentForm';
 import { AddUpdateForm } from '../components/AddUpdateForm';
 import { ChangeStatusForm } from '../components/ChangeStatusForm';
-import { useGetAllIncidents } from '../hooks/useQueries';
+import { useGetAllIncidents, useDeleteIncident } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { Status, type IncidentDTO } from '../backend';
+import { StatusBadge } from '../components/StatusBadge';
+import { SeverityBadge } from '../components/SeverityBadge';
+import { toast } from 'sonner';
 
 function LoginGate() {
   const { login, isLoggingIn, isLoginError, loginError, isInitializing } = useInternetIdentity();
@@ -69,12 +86,97 @@ function LoginGate() {
   );
 }
 
+interface DeleteResolvedRowProps {
+  incident: IncidentDTO;
+}
+
+function DeleteResolvedRow({ incident }: DeleteResolvedRowProps) {
+  const deleteMutation = useDeleteIncident();
+
+  function formatTimestamp(nanoseconds: bigint): string {
+    const ms = Number(nanoseconds / BigInt(1_000_000));
+    return new Date(ms).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  async function handleDelete() {
+    try {
+      await deleteMutation.mutateAsync(incident.id);
+      toast.success(`Incident "${incident.title}" deleted successfully.`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete incident.';
+      toast.error(message);
+    }
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-3 p-4 rounded-lg border border-border bg-card/50">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <SeverityBadge severity={incident.severity} />
+          <StatusBadge status={incident.status} />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground leading-snug truncate">
+          {incident.title}
+        </p>
+        <p className="text-xs text-muted-foreground/70 font-mono mt-0.5">
+          {incident.affectedService} · Resolved {formatTimestamp(incident.updatedAt)}
+        </p>
+      </div>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0 h-8 text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            Delete
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Resolved Incident?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete{' '}
+              <span className="font-semibold text-foreground">"{incident.title}"</span>. This action
+              cannot be undone and the incident will be removed from the public status page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Incident
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
 function AdminContent() {
   const [activeTab, setActiveTab] = useState('create');
   const { data: incidents, isLoading, isError } = useGetAllIncidents();
   const { clear, isLoggingIn, identity } = useInternetIdentity();
 
   const allIncidents = incidents ?? [];
+  const resolvedIncidents = allIncidents.filter((i) => i.status === Status.resolved);
   const principalShort = identity
     ? identity.getPrincipal().toString().slice(0, 10) + '…'
     : null;
@@ -131,7 +233,7 @@ function AdminContent() {
             },
             {
               label: 'Resolved',
-              value: allIncidents.filter((i) => i.status === 'resolved').length,
+              value: resolvedIncidents.length,
               color: 'text-[oklch(0.72_0.14_145)]',
             },
           ].map((stat) => (
@@ -179,6 +281,10 @@ function AdminContent() {
           <TabsTrigger value="status" className="flex-1 text-xs gap-1.5 font-medium">
             <RefreshCw className="w-3.5 h-3.5" />
             Change Status
+          </TabsTrigger>
+          <TabsTrigger value="delete" className="flex-1 text-xs gap-1.5 font-medium">
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
           </TabsTrigger>
         </TabsList>
 
@@ -245,6 +351,43 @@ function AdminContent() {
                 </div>
               ) : (
                 <ChangeStatusForm incidents={allIncidents} />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="delete">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Trash2 className="w-4 h-4 text-muted-foreground" />
+                Delete Resolved Incidents
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Permanently remove resolved incidents from the status page. Only resolved incidents
+                can be deleted.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                </div>
+              ) : resolvedIncidents.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <CheckCircle2 className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium">No resolved incidents</p>
+                  <p className="text-xs mt-1">
+                    Resolved incidents will appear here once incidents are marked as resolved.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {resolvedIncidents.map((incident) => (
+                    <DeleteResolvedRow key={incident.id} incident={incident} />
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>

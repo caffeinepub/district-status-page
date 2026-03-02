@@ -1,14 +1,16 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T03:03:56.474Z",
-  "summary": "The diff implements fixes to the React Query hooks and Dashboard component to address stale/empty state issues after mutations. The changes align well with REQ-6's requirements: proper cache invalidation with refetchType: 'all' on all mutations (createIncident, addUpdate, changeStatus), refetchOnMount and refetchOnWindowFocus on the getAllIncidents query, 30s polling, a hasData guard to prevent premature empty state display, and correct active/resolved grouping with severity-based sorting.",
+  "generatedAt": "2026-03-02T03:28:08.866Z",
+  "summary": "All three requirements (REQ-7, REQ-8, REQ-9) appear to be implemented in the diff. The backend gains a deleteIncident function with proper resolved-only enforcement, the frontend gains a useDeleteIncident mutation hook with cache invalidation, the Dashboard gains a real-time search/filter input, and the Admin Panel gains a Delete tab with confirmation dialogs for resolved incidents.",
   "missing_requirements": [],
   "hallucinated_features": [],
   "confidence": 0.92,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminPanel.tsx",
     "frontend/src/pages/Dashboard.tsx",
     "project_state.json"
   ]

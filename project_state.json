@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 9,
   "summary": "Internal status page dashboard for a district IT team. No login required for viewers. Techs can log in to the admin panel to post and update incidents and resolutions. Simple, clean UI visible across the district.",
   "architectural_notes": [
     "Public read-only view; no authentication needed for viewers",
@@ -9,7 +9,7 @@
   "known_issues": [
     "Dashboard incorrectly shows 'no incidents' or stale state even after incidents are added via the admin panel"
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-build-a-public-facing-status-dashboard-page-that-displays-all-active-and-resolved-incidents-grouped-by-status-show-each-incident-s-title-affected-system-severity-current-status-last-updated-time-and-its-update-timeline-active-incidents-should-appear-prominently-at-the-top-no-login-is-required-to-view-this-page",
@@ -50,6 +50,22 @@
         "REQ-6"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-search-filter-input-to-the-public-facing-dashboard-that-allows-users-to-filter-displayed-incidents-by-keyword-the-filter-should-match-against-incident-title-affected-system-service-and-description-fields-both-active-and-resolved-incident-sections-should-be-filtered-simultaneously-the-filter-input-should-be-visible-above-the-incident-list-and-update-results-in-real-time-as-the-user-types-if-no-incidents-match-the-search-term-display-a-clear-no-results-message",
+      "title": "Add a search/filter input to the public-facing Dashboard that allows users to filter displayed incidents by keyword. The filter should match against incident title, affected system/service, and description fields. Both active and resolved incident sections should be filtered simultaneously. The filter input should be visible above the incident list and update results in real time as the user types. If no incidents match the search term, display a clear 'no results' message.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-delete-button-to-each-resolved-incident-in-the-admin-panel-clicking-the-button-should-call-the-deleteincident-backend-function-for-that-incident-after-a-successful-deletion-the-react-query-cache-for-getallincidents-must-be-invalidated-so-the-admin-panel-and-dashboard-reflect-the-removal-immediately-the-delete-action-should-require-a-confirmation-step-e-g-a-confirmation-dialog-or-prompt-to-prevent-accidental-deletions-the-delete-button-should-only-appear-for-incidents-with-resolved-status",
+      "title": "Add a delete button to each resolved incident in the Admin Panel. Clicking the button should call the deleteIncident backend function for that incident. After a successful deletion, the React Query cache for getAllIncidents must be invalidated so the admin panel and dashboard reflect the removal immediately. The delete action should require a confirmation step (e.g., a confirmation dialog or prompt) to prevent accidental deletions. The delete button should only appear for incidents with resolved status.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -83,6 +99,26 @@
       "id": "AR-5",
       "summary": "Add login authentication to the admin panel so only authorized techs can access and update incidents",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add search/filter functionality to the dashboard to filter incidents by keyword",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Allow admins to delete resolved incidents from the admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add a deleteIncident backend function to the Motoko actor that accepts an incident ID and removes the incident from the store. Only incidents with a 'resolved' status should be deletable; attempts to delete non-resolved incidents should return an error variant.",
+      "reqIds": [
+        "REQ-8"
+      ],
       "status": "pending"
     }
   ],

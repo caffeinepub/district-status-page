@@ -1,5 +1,7 @@
-import { RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Info, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { IncidentCard } from '../components/IncidentCard';
@@ -8,6 +10,16 @@ import { Status, Severity, type IncidentDTO } from '../backend';
 
 function isActiveIncident(incident: IncidentDTO): boolean {
   return incident.status !== Status.resolved;
+}
+
+function matchesSearch(incident: IncidentDTO, term: string): boolean {
+  if (!term.trim()) return true;
+  const lower = term.toLowerCase();
+  return (
+    incident.title.toLowerCase().includes(lower) ||
+    incident.affectedService.toLowerCase().includes(lower) ||
+    incident.description.toLowerCase().includes(lower)
+  );
 }
 
 function OverallStatusBanner({ activeCount }: { activeCount: number }) {
@@ -38,19 +50,6 @@ function OverallStatusBanner({ activeCount }: { activeCount: number }) {
   );
 }
 
-function SeverityIcon({ severity }: { severity: Severity }) {
-  switch (severity) {
-    case Severity.critical:
-      return <AlertCircle className="w-4 h-4 text-[oklch(0.75_0.18_25)]" />;
-    case Severity.major:
-      return <AlertTriangle className="w-4 h-4 text-[oklch(0.82_0.14_55)]" />;
-    case Severity.minor:
-      return <AlertTriangle className="w-4 h-4 text-[oklch(0.85_0.12_85)]" />;
-    case Severity.informational:
-      return <Info className="w-4 h-4 text-[oklch(0.72_0.12_220)]" />;
-  }
-}
-
 function LoadingSkeleton() {
   return (
     <div className="space-y-3">
@@ -70,6 +69,7 @@ function LoadingSkeleton() {
 
 export function Dashboard() {
   const { data: incidents, isLoading, isError, refetch, isFetching } = useGetAllIncidents();
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Only treat as loaded when we have a successful response (not undefined)
   const hasData = incidents !== undefined;
@@ -84,11 +84,29 @@ export function Dashboard() {
     [Severity.informational]: 3,
   };
 
-  const sortedActive = [...activeIncidents].sort((a, b) => {
-    const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
-    if (sevDiff !== 0) return sevDiff;
-    return Number(b.updatedAt - a.updatedAt);
-  });
+  const sortedActive = useMemo(
+    () =>
+      [...activeIncidents].sort((a, b) => {
+        const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
+        if (sevDiff !== 0) return sevDiff;
+        return Number(b.updatedAt - a.updatedAt);
+      }),
+    [activeIncidents]
+  );
+
+  // Apply search filter
+  const filteredActive = useMemo(
+    () => sortedActive.filter((i) => matchesSearch(i, searchTerm)),
+    [sortedActive, searchTerm]
+  );
+
+  const filteredResolved = useMemo(
+    () => resolvedIncidents.filter((i) => matchesSearch(i, searchTerm)),
+    [resolvedIncidents, searchTerm]
+  );
+
+  const isSearching = searchTerm.trim().length > 0;
+  const noResults = isSearching && filteredActive.length === 0 && filteredResolved.length === 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -135,23 +153,64 @@ export function Dashboard() {
       {/* Loading state */}
       {isLoading && <LoadingSkeleton />}
 
+      {/* Search input — only show when data is loaded and there are incidents */}
+      {hasData && !isError && incidents.length > 0 && (
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Search incidents by title, service, or description…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-9 h-9 text-sm font-mono bg-card border-border"
+          />
+          {isSearching && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Active incidents */}
-      {hasData && sortedActive.length > 0 && (
+      {hasData && filteredActive.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider font-mono">
               Active Incidents
             </h2>
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[oklch(0.62_0.22_25/0.2)] text-[oklch(0.82_0.18_25)] text-xs font-mono font-bold">
-              {sortedActive.length}
+              {filteredActive.length}
             </span>
           </div>
           <div className="space-y-3">
-            {sortedActive.map((incident) => (
+            {filteredActive.map((incident) => (
               <IncidentCard key={incident.id} incident={incident} />
             ))}
           </div>
         </section>
+      )}
+
+      {/* No search results */}
+      {hasData && !isError && noResults && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Search className="w-8 h-8 mx-auto mb-3 opacity-30" />
+          <p className="text-sm font-medium">No incidents match your search</p>
+          <p className="text-xs mt-1">
+            Try a different keyword or{' '}
+            <button
+              onClick={() => setSearchTerm('')}
+              className="underline hover:text-foreground transition-colors"
+            >
+              clear the search
+            </button>
+            .
+          </p>
+        </div>
       )}
 
       {/* No incidents at all — only show after confirmed successful fetch with empty result */}
@@ -164,19 +223,19 @@ export function Dashboard() {
       )}
 
       {/* Resolved incidents */}
-      {hasData && resolvedIncidents.length > 0 && (
+      {hasData && filteredResolved.length > 0 && (
         <section>
-          {sortedActive.length > 0 && <Separator className="mb-6" />}
+          {filteredActive.length > 0 && <Separator className="mb-6" />}
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider font-mono">
               Resolved Incidents
             </h2>
             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-muted-foreground text-xs font-mono font-bold">
-              {resolvedIncidents.length}
+              {filteredResolved.length}
             </span>
           </div>
           <div className="space-y-3">
-            {resolvedIncidents.map((incident) => (
+            {filteredResolved.map((incident) => (
               <IncidentCard key={incident.id} incident={incident} />
             ))}
           </div>

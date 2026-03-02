@@ -10,6 +10,9 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export type DeleteIncidentResult = { 'notResolved' : null } |
+  { 'notFound' : null } |
+  { 'success' : null };
 export interface IncidentDTO {
   'id' : string,
   'status' : Status,
@@ -44,6 +47,7 @@ export interface _SERVICE {
     [string, string, string, string, Severity],
     IncidentDTO
   >,
+  'deleteIncident' : ActorMethod<[string], DeleteIncidentResult>,
   'getAllIncidents' : ActorMethod<[], Array<IncidentDTO>>,
   'getIncident' : ActorMethod<[string], [] | [IncidentDTO]>,
   'isIdAlreadyUsed' : ActorMethod<[string], boolean>,

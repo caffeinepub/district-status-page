@@ -67,6 +67,12 @@ actor {
     timestamp : Time.Time;
   };
 
+  type DeleteIncidentResult = {
+    #success;
+    #notFound;
+    #notResolved;
+  };
+
   let incidentsMap = Map.empty<Text, Incident>();
 
   public shared ({ caller }) func createIncident(
@@ -190,6 +196,25 @@ actor {
           createdAt = incident.createdAt;
           updatedAt = now;
           updates = incident.updates;
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteIncident(id : Text) : async DeleteIncidentResult {
+    switch (incidentsMap.get(id)) {
+      case (null) {
+        #notFound;
+      };
+      case (?incident) {
+        switch (incident.status) {
+          case (#resolved) {
+            incidentsMap.remove(id);
+            #success;
+          };
+          case (_) {
+            #notResolved;
+          };
         };
       };
     };

@@ -1,27 +1,48 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix dashboard not refreshing after incidents are added",
+  "title": "Add search filter to dashboard and delete resolved incidents in admin panel",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "Fix the public-facing Dashboard so that it correctly reflects the current state of incidents after they are created or updated via the admin panel by properly invalidating the React Query cache and ensuring fresh data is always displayed",
+      "id": "REQ-7",
+      "summary": "Add a search/filter input to the public-facing Dashboard that filters displayed incidents by keyword in real time",
       "acceptanceCriteria": [
-        "After creating an incident in the admin panel, the public dashboard reflects the new incident without requiring a manual page reload.",
-        "The dashboard does not display a 'no incidents' or empty state when one or more incidents exist in the backend.",
-        "The getAllIncidents React Query hook fetches fresh data on mount and invalidates correctly after any create/update/status-change mutation.",
-        "Active incidents appear in the active section and resolved incidents appear in the resolved section with correct grouping."
+        "A search input field is visible on the Dashboard above the incident sections",
+        "Typing in the search field filters incidents in real time without a page reload",
+        "Filtering matches against incident title, affected system/service, and description",
+        "Both the active and resolved incident sections are filtered by the same search term",
+        "When no incidents match the search term, a 'no results' message is shown",
+        "When the search field is cleared, all incidents are shown again"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Add a controlled search input above the incident list sections. Implement client-side filtering logic using useMemo to filter incidents array based on search term matching against title, affectedService, and description fields. Apply the same filter to both active and resolved incident sections. Display a 'No incidents match your search' message when the filtered arrays are empty and search term is not empty. Use the shadcn-ui Input component for the search field."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add a delete button to each resolved incident in the Admin Panel with confirmation dialog",
+      "acceptanceCriteria": [
+        "A delete button is visible on resolved incidents in the Admin Panel",
+        "No delete button appears on non-resolved incidents",
+        "Clicking the delete button shows a confirmation prompt before proceeding",
+        "Confirming the deletion calls deleteIncident and removes the incident",
+        "After deletion, the incident list in the admin panel and dashboard is updated immediately",
+        "A useDeleteIncident mutation hook exists in useQueries.ts and invalidates the getAllIncidents cache on success"
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update the mutation hooks (useCreateIncident, useAddUpdate, useChangeStatus) to properly invalidate the 'allIncidents' query cache after successful mutations. Ensure that the queryClient.invalidateQueries call uses the correct query key matching the getAllIncidents hook. Add proper error handling and ensure mutations are awaited before invalidation occurs."
+          "description": "Add a useDeleteIncident mutation hook that calls the backend deleteIncident function with an incident ID. On successful deletion, invalidate the 'incidents' query key to refresh the getAllIncidents cache. Handle the DeleteIncidentResult enum variants (success, notFound, notResolved) and return appropriate success/error states to the UI."
         },
         {
-          "path": "frontend/src/pages/Dashboard.tsx",
+          "path": "frontend/src/pages/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Configure the useGetAllIncidents hook to refetch on mount and window focus, ensuring the dashboard always displays the latest data. Add refetchOnMount: true and refetchOnWindowFocus: true to the query options. Verify that the loading and error states are correctly handled and that the 'no incidents' empty state only appears when the incidents array is genuinely empty after a successful fetch."
+          "description": "Add a new 'Delete Resolved' tab that displays all resolved incidents from the getAllIncidents query. For each resolved incident, render an IncidentCard with a delete button. Wire the delete button to open a shadcn-ui AlertDialog for confirmation. On confirmation, call the useDeleteIncident mutation. Display success/error toast notifications based on mutation result. Use the shadcn-ui AlertDialog component for the confirmation prompt."
         }
       ]
     }

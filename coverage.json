@@ -1,36 +1,60 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T03:03:56.476Z",
+  "generatedAt": "2026-03-02T03:28:08.868Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-6",
-        "summary": "Fix the public-facing Dashboard so that it correctly reflects the current state of incidents after they are created or updated via the admin panel. The dashboard must not show a 'no incidents' or stale state when incidents exist in the backend. Ensure the React Query cache for getAllIncidents is properly invalidated or refetched after mutations, and that the dashboard always displays the latest data on load and after polling.",
+        "id": "REQ-7",
+        "summary": "Add a search/filter input to the public-facing Dashboard that allows users to filter displayed incidents by keyword. The filter should match against incident title, affected system/service, and description fields. Both active and resolved incident sections should be filtered simultaneously. The filter input should be visible above the incident list and update results in real time as the user types. If no incidents match the search term, display a clear 'no results' message.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/Dashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/Dashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Add a deleteIncident backend function to the Motoko actor that accepts an incident ID and removes the incident from the store. Only incidents with a 'resolved' status should be deletable; attempts to delete non-resolved incidents should return an error variant.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Add a delete button to each resolved incident in the Admin Panel. Clicking the button should call the deleteIncident backend function for that incident. After a successful deletion, the React Query cache for getAllIncidents must be invalidated so the admin panel and dashboard reflect the removal immediately. The delete action should require a confirmation step (e.g., a confirmation dialog or prompt) to prevent accidental deletions. The delete button should only appear for incidents with resolved status.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminPanel.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminPanel.tsx",
     "frontend/src/pages/Dashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { type IncidentDTO, type Severity } from '../backend';
+import { type IncidentDTO, type Severity, DeleteIncidentResult } from '../backend';
 
 export const INCIDENTS_QUERY_KEY = ['incidents'];
 
@@ -35,11 +35,16 @@ export function useGetIncident(incidentId: string) {
   });
 }
 
+/**
+ * Returns an imperative async function that checks whether an incident ID is
+ * already in use. This allows the CreateIncidentForm to call it on demand
+ * during form submission rather than as a reactive query.
+ */
 export function useIsIdAlreadyUsed() {
   const { actor } = useActor();
 
   return async (id: string): Promise<boolean> => {
-    if (!actor) return false;
+    if (!actor) throw new Error('Actor not initialized');
     return actor.isIdAlreadyUsed(id);
   };
 }
@@ -122,6 +127,28 @@ export function useChangeStatus() {
     }) => {
       if (!actor) throw new Error('Actor not initialized');
       return actor.changeStatus(incidentId, title, description, affectedService, severity, newStatus);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
+    },
+  });
+}
+
+export function useDeleteIncident() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!actor) throw new Error('Actor not initialized');
+      const result = await actor.deleteIncident(id);
+      if (result === DeleteIncidentResult.notFound) {
+        throw new Error('Incident not found.');
+      }
+      if (result === DeleteIncidentResult.notResolved) {
+        throw new Error('Only resolved incidents can be deleted.');
+      }
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
