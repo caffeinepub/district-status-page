@@ -50,7 +50,7 @@ export function CreateIncidentForm({ onSuccess }: CreateIncidentFormProps) {
   const onSubmit = async (data: FormValues) => {
     setIdError(null);
     try {
-      const isUsed = await checkIdUsed(data.id);
+      const isUsed = await checkIdUsed.mutateAsync(data.id);
       if (isUsed) {
         setIdError('This ID is already in use. Please choose a different one.');
         return;
@@ -176,15 +176,15 @@ export function CreateIncidentForm({ onSuccess }: CreateIncidentFormProps) {
       <Button
         type="submit"
         size="sm"
-        disabled={createIncident.isPending}
+        disabled={createIncident.isPending || checkIdUsed.isPending}
         className="w-full h-9 text-sm gap-2"
       >
-        {createIncident.isPending ? (
+        {(createIncident.isPending || checkIdUsed.isPending) ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
           <Plus className="w-3.5 h-3.5" />
         )}
-        {createIncident.isPending ? 'Creating...' : 'Create Incident'}
+        {(createIncident.isPending || checkIdUsed.isPending) ? 'Creating...' : 'Create Incident'}
       </Button>
 
       {createIncident.isError && (

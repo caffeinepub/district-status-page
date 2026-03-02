@@ -1,36 +1,26 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  RouterProvider,
-  Outlet,
-} from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, RouterProvider, Outlet } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
+import { Layout } from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import { AdminPanel } from "./pages/AdminPanel";
 import { Toaster } from "@/components/ui/sonner";
-import { Layout } from "@/components/Layout";
-import { Dashboard } from "@/pages/Dashboard";
-import { AdminPanel } from "@/pages/AdminPanel";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+      staleTime: 10_000,
     },
   },
 });
 
-function AppLayout() {
-  return (
+const rootRoute = createRootRoute({
+  component: () => (
     <Layout>
       <Outlet />
     </Layout>
-  );
-}
-
-const rootRoute = createRootRoute({
-  component: AppLayout,
+  ),
 });
 
 const indexRoute = createRoute({
@@ -57,7 +47,7 @@ declare module "@tanstack/react-router" {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
         <Toaster />

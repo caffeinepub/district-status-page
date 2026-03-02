@@ -1,35 +1,42 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T03:58:50.482Z",
+  "generatedAt": "2026-03-02T04:11:39.988Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 1,
-    "implemented": 0,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-13",
-        "summary": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel. The 'Failed to load incidents / Unable to connect to the backend' error must not appear. Audit the full data path: verify the canister ID environment variable is correctly referenced and available at runtime, confirm the useActor hook produces a valid actor instance with anonymous identity for public queries, confirm the useQueries hooks (especially getAllIncidents) receive a non-null actor and invoke backend calls correctly, and ensure no module initialization order or provider wrapping issue (e.g., from ThemeProvider, QueryClientProvider, or InternetIdentityProvider ordering in App.tsx or main.tsx) is silently preventing actor creation. Fix all identified root causes so incidents are fetched and displayed correctly on page load.",
-        "status": "missing",
+        "id": "REQ-15",
+        "summary": "Perform a ground-up rewrite of the frontend-to-backend wiring. Replace the current actor initialization and query setup with a minimal, proven approach: (1) In useActor.ts, create the actor synchronously using HttpAgent with anonymous identity when no Internet Identity principal is present — never return null or undefined; log the resolved canister ID at init time so it is visible in the browser console. (2) In useQueries.ts, call useActor() at the top of every hook, assert the actor is non-null before passing it to React Query's queryFn, and surface the raw error message in the query's error state so failures are visible in the UI. (3) In App.tsx, ensure the provider order is exactly: ThemeProvider (outermost) → QueryClientProvider → InternetIdentityProvider → RouterProvider (innermost), with no hooks called outside of a valid provider context. (4) Remove or disable any code path that conditionally skips the getAllIncidents query (e.g., `enabled: !!actor` guards that evaluate to false for anonymous users). The query must run on every page load regardless of authentication state. (5) Confirm the Vite environment variable for the canister ID (VITE_CANISTER_ID_BACKEND or equivalent) is referenced consistently in one place and that the build config exposes it correctly.",
+        "status": "implemented",
         "plannedFiles": [
+          "frontend/src/hooks/useActorWrapper.ts",
           "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/main.tsx",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/AdminPanel.tsx",
-          "frontend/src/components/CreateIncidentForm.tsx",
-          "frontend/src/components/AddUpdateForm.tsx",
-          "frontend/src/components/ChangeStatusForm.tsx"
+          "frontend/vite.config.ts"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

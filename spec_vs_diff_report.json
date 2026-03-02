@@ -1,21 +1,54 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T03:58:50.479Z",
-  "summary": "The diff shows only a modification to project_state.json (an internal metadata/tracking file). No actual source code files were modified — no changes to App.tsx, useActor.ts, useQueries hooks, canister ID configuration, environment variables, provider ordering, or any other frontend source files. REQ-13 requires diagnosing and fixing the frontend-to-backend connection across multiple files and layers, none of which are present in this diff.",
+  "generatedAt": "2026-03-02T04:11:39.984Z",
+  "summary": "The diff implements several parts of REQ-15 but falls short on key acceptance criteria. App.tsx correctly sets up ThemeProvider → QueryClientProvider → RouterProvider nesting, but the InternetIdentityProvider is missing from the provider chain. useQueries.ts still uses `enabled: !!actor && !isFetching` guards that will skip the getAllIncidents query for anonymous users when actor is falsy, directly violating REQ-15 requirement (4). The useActor.ts file is not shown in the diff, so it is unknown whether it was updated to always return a non-null actor synchronously with anonymous identity and log the canister ID. The Vite environment variable consistency check is also not evidenced.",
   "missing_requirements": [
     {
-      "id": "REQ-13",
-      "requirement": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel. Verify canister ID environment variable, confirm useActor hook produces a valid actor instance, confirm useQueries hooks receive a non-null actor, and ensure no provider wrapping/ordering issue prevents actor creation.",
-      "reason": "The diff contains zero changes to any frontend source files. No fixes were made to canister ID references, useActor, useQueries, App.tsx provider ordering, or any other component involved in the data path. Only project_state.json was modified.",
+      "id": "REQ-15",
+      "requirement": "Provider order must be exactly ThemeProvider → QueryClientProvider → InternetIdentityProvider → RouterProvider. The InternetIdentityProvider is absent from the provider chain in App.tsx.",
+      "reason": "App.tsx shows ThemeProvider → QueryClientProvider → RouterProvider with no InternetIdentityProvider wrapping RouterProvider.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "Remove or disable any code path that conditionally skips the getAllIncidents query. The query must run on every page load regardless of authentication state.",
+      "reason": "useQueries.ts still sets enabled: !!actor && !isFetching for useGetAllIncidents, which evaluates to false when actor is falsy, skipping the query for anonymous users.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "In useActor.ts, create the actor synchronously using HttpAgent with anonymous identity when no Internet Identity principal is present — never return null or undefined; log the resolved canister ID at init time.",
+      "reason": "useActor.ts is not present in the diff. The isFetching state returned from useActor suggests the actor can still be in a non-ready state, contradicting the never-return-null requirement.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "Confirm the Vite environment variable for the canister ID is referenced consistently in one place and that the build config exposes it correctly.",
+      "reason": "No changes to vite.config.ts, .env files, or canister ID referencing are present in the diff.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "In useQueries.ts, surface the raw error message in the query's error state so failures are visible in the UI.",
+      "reason": "While errors are thrown in queryFn, there is no evidence that the raw error message is displayed in UI components. The diff does not show UI-level error display changes in Dashboard or AdminPanel.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
       ]
     }
   ],
   "hallucinated_features": [],
-  "confidence": 0.97,
+  "confidence": 0.72,
   "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

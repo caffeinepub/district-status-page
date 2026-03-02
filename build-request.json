@@ -1,42 +1,44 @@
 {
   "kind": "build_request",
-  "title": "Fix incidents failing to load (frontend-to-backend connection)",
+  "title": "Emergency fix: frontend-to-backend connection completely broken after Version 9",
   "projectName": "District Status Page",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-13",
-      "text": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel. The 'Failed to load incidents / Unable to connect to the backend' error must not appear. Audit the full data path: verify the canister ID environment variable is correctly referenced and available at runtime, confirm the useActor hook produces a valid actor instance with anonymous identity for public queries, confirm the useQueries hooks (especially getAllIncidents) receive a non-null actor and invoke backend calls correctly, and ensure no module initialization order or provider wrapping issue (e.g., from ThemeProvider, QueryClientProvider, or InternetIdentityProvider ordering in App.tsx or main.tsx) is silently preventing actor creation. Fix all identified root causes so incidents are fetched and displayed correctly on page load.",
-      "target": "frontend",
+      "id": "REQ-15",
+      "text": "Perform a ground-up rewrite of the frontend-to-backend wiring. Replace the current actor initialization and query setup with a minimal, proven approach: (1) In useActor.ts, create the actor synchronously using HttpAgent with anonymous identity when no Internet Identity principal is present — never return null or undefined; log the resolved canister ID at init time so it is visible in the browser console. (2) In useQueries.ts, call useActor() at the top of every hook, assert the actor is non-null before passing it to React Query's queryFn, and surface the raw error message in the query's error state so failures are visible in the UI. (3) In App.tsx, ensure the provider order is exactly: ThemeProvider (outermost) → QueryClientProvider → InternetIdentityProvider → RouterProvider (innermost), with no hooks called outside of a valid provider context. (4) Remove or disable any code path that conditionally skips the getAllIncidents query (e.g., `enabled: !!actor` guards that evaluate to false for anonymous users). The query must run on every page load regardless of authentication state. (5) Confirm the Vite environment variable for the canister ID (VITE_CANISTER_ID_BACKEND or equivalent) is referenced consistently in one place and that the build config exposes it correctly.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "The incidents still fail to load. Fix this."
+          "Somehow its now worse",
+          "Failed to load incidents / Unable to connect to the backend"
         ]
       },
       "acceptanceCriteria": [
-        "The Dashboard loads and displays incidents from the backend without showing any error message.",
-        "The Admin Panel loads incident data from the backend without showing any error message.",
-        "The useActor hook returns a valid actor instance for anonymous (public) queries.",
-        "The getAllIncidents React Query hook successfully calls the backend and returns incident data.",
-        "No console errors related to canister ID, actor initialization, or backend connection appear on page load.",
-        "The light/dark mode ThemeToggle continues to function correctly alongside the working backend connection.",
-        "Internet Identity authentication on the /admin route continues to function correctly."
+        "Opening the Dashboard (/) on a fresh page load shows incidents fetched from the backend without any manual refresh.",
+        "The browser console shows the resolved canister ID logged at actor initialization time.",
+        "No 'Failed to load incidents / Unable to connect to the backend' error appears on either the Dashboard or Admin Panel.",
+        "The getAllIncidents query fires for anonymous (unauthenticated) users — it is never skipped due to a missing actor.",
+        "The Admin Panel login flow via Internet Identity still works correctly after these fixes.",
+        "The light/dark mode ThemeToggle remains functional and does not interfere with actor initialization or query execution.",
+        "The app does not crash or render a blank screen on initial load."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files listed in frontend.immutablePaths: useInternetIdentity.ts, useActor.ts, main.tsx, and frontend/src/components/ui.",
-    "Do not change the backend Motoko actor or data model.",
-    "The light/dark mode toggle (ThemeToggle, useTheme) must remain functional after the fix.",
-    "Internet Identity authentication on /admin must remain functional after the fix."
+    "Do not modify any file listed under frontend.immutablePaths: useInternetIdentity.ts, useInternetIdentity.tsx, useActor.ts (read-only for immutable paths — implement fixes in non-immutable wrappers or callsites if useActor.ts is immutable), main.tsx, and frontend/src/components/ui.",
+    "All Motoko logic must remain in a single actor in backend/main.mo.",
+    "Do not remove or regress any existing feature: dashboard, admin panel, search/filter, delete, light/dark toggle, or Internet Identity auth gate."
   ],
   "nonGoals": [
-    "Adding new features or UI changes unrelated to fixing the backend connection.",
-    "Changing the backend Motoko actor logic.",
-    "Modifying the authentication flow beyond what is needed to restore the connection."
+    "Adding new incident fields or backend data model changes.",
+    "Redesigning the UI layout or visual theme.",
+    "Adding new authentication providers beyond Internet Identity.",
+    "Adding new frontend pages or routes."
   ],
   "imageRequirements": {
     "required": [],

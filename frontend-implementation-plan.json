@@ -1,50 +1,55 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix incidents failing to load (frontend-to-backend connection)",
+  "title": "Emergency fix: frontend-to-backend connection completely broken after Version 9",
   "requirements": [
     {
-      "id": "REQ-13",
-      "summary": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel, eliminating 'Failed to load incidents / Unable to connect to the backend' errors by auditing the full data path including canister ID configuration, useActor hook initialization, useQueries hook invocation, and provider ordering",
+      "id": "REQ-15",
+      "summary": "Perform a ground-up rewrite of the frontend-to-backend wiring to ensure reliable actor initialization, unconditional query execution for anonymous users, correct provider ordering, and visible error surfacing",
       "acceptanceCriteria": [
-        "The Dashboard loads and displays incidents from the backend without showing any error message.",
-        "The Admin Panel loads incident data from the backend without showing any error message.",
-        "The useActor hook returns a valid actor instance for anonymous (public) queries.",
-        "The getAllIncidents React Query hook successfully calls the backend and returns incident data.",
-        "No console errors related to canister ID, actor initialization, or backend connection appear on page load.",
-        "The light/dark mode ThemeToggle continues to function correctly alongside the working backend connection.",
-        "Internet Identity authentication on the /admin route continues to function correctly."
+        "Opening the Dashboard (/) on a fresh page load shows incidents fetched from the backend without any manual refresh.",
+        "The browser console shows the resolved canister ID logged at actor initialization time.",
+        "No 'Failed to load incidents / Unable to connect to the backend' error appears on either the Dashboard or Admin Panel.",
+        "The getAllIncidents query fires for anonymous (unauthenticated) users — it is never skipped due to a missing actor.",
+        "The Admin Panel login flow via Internet Identity still works correctly after these fixes.",
+        "The light/dark mode ThemeToggle remains functional and does not interfere with actor initialization or query execution.",
+        "The app does not crash or render a blank screen on initial load."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useActorWrapper.ts",
+          "operation": "create",
+          "description": "Create a new non-immutable wrapper hook that calls the immutable useActor hook and ensures a non-null actor is always returned. If useActor returns null or undefined, create a synchronous fallback actor using HttpAgent with anonymous identity. Log the resolved canister ID to the browser console at initialization time. This wrapper satisfies the constraint that useActor.ts itself is immutable while fixing the actor initialization flow."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Fix the getAllIncidents query by ensuring it correctly handles the actor instance: add null check for actor before calling getAllIncidents, ensure enabled flag properly waits for actor availability, add error handling for backend connection failures, and verify the query returns data in the correct format expected by Dashboard and AdminPanel components"
+          "description": "Replace all calls to useActor() with useActorWrapper() at the top of every hook. Assert that the actor is non-null before passing it to React Query's queryFn. Remove any enabled guards like `enabled: !!actor` that would skip queries for anonymous users. In the getAllIncidents hook specifically, ensure the query runs unconditionally on every page load. Surface raw error messages in the query's error state so failures are visible in the UI (return error.message or String(error) in onError callbacks or error transformers)."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Verify and enforce the exact provider nesting order: ThemeProvider (outermost) → QueryClientProvider → InternetIdentityProvider → RouterProvider (innermost). Ensure no hooks are called outside of a valid provider context. Review the current structure and adjust if necessary to match this required order exactly."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Review the root mounting logic to ensure all provider wrappers are correctly established before rendering the App component. Confirm that QueryClientProvider and InternetIdentityProvider are present and correctly ordered in the provider tree. If any provider is missing or incorrectly ordered relative to App.tsx, adjust the structure to support the required nesting."
         },
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Add robust error handling and loading state management for the incidents query: ensure the component properly waits for both actor initialization and data fetching, add user-friendly error messages distinguishing between actor initialization failures and data fetch failures, verify the incidents array is safely handled when undefined or null, and add console logging for debugging the data flow from useGetAllIncidents to rendering"
+          "description": "Ensure the Dashboard page calls the updated useAllIncidents hook (which now uses useActorWrapper) without any conditional guards that would prevent the query from running for anonymous users. Verify that error states from the query are displayed in the UI so that connection failures surface a visible error message rather than silently failing."
         },
         {
           "path": "frontend/src/pages/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Add comprehensive error handling and loading state management for the incidents query in the admin context: ensure the component waits for both authentication and actor initialization before fetching data, add clear error messaging for backend connection issues distinct from authentication failures, verify that all form components receive valid incident data arrays, and add debug logging to trace the authenticated actor creation and query execution flow"
+          "description": "Ensure the AdminPanel page calls the updated query hooks (which now use useActorWrapper) and that error states are properly displayed. Verify that the Internet Identity authentication flow still works correctly and does not interfere with actor initialization or query execution."
         },
         {
-          "path": "frontend/src/components/CreateIncidentForm.tsx",
+          "path": "frontend/vite.config.ts",
           "operation": "modify",
-          "description": "Add defensive null checks and error handling for the actor-dependent ID validation: ensure the isIdAlreadyUsed query properly handles null or undefined actor instances, add appropriate loading and error states for the ID uniqueness check, prevent form submission when actor is unavailable, and provide clear user feedback when backend validation cannot be performed due to connection issues"
-        },
-        {
-          "path": "frontend/src/components/AddUpdateForm.tsx",
-          "operation": "modify",
-          "description": "Add error handling for actor availability in the incident selection and update submission flow: ensure the incidents dropdown safely handles loading and error states from useGetAllIncidents, add null checks before accessing actor-dependent data, provide user feedback when backend connection is unavailable, and verify the mutation properly waits for a valid actor instance"
-        },
-        {
-          "path": "frontend/src/components/ChangeStatusForm.tsx",
-          "operation": "modify",
-          "description": "Add robust error handling for actor-dependent incident loading and status changes: ensure the incident selector safely handles null or undefined incidents array, add appropriate loading states while fetching incident data, provide clear error messages when backend is unavailable, and verify the status change mutation waits for actor initialization before attempting the operation"
+          "description": "Confirm that the Vite environment variable for the backend canister ID (VITE_CANISTER_ID_BACKEND or equivalent) is correctly defined and exposed in the build config. Ensure the variable is referenced consistently in useActorWrapper and that it resolves correctly at build time and runtime."
         }
       ]
     }

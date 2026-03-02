@@ -1,27 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
-import { Severity, Status } from "../backend";
+import type { IncidentDTO, Severity } from "../backend";
 
 export function useGetAllIncidents() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<IncidentDTO[]>({
     queryKey: ["incidents"],
     queryFn: async () => {
-      if (!actor) return [];
-      try {
-        const result = await actor.getAllIncidents();
-        return result ?? [];
-      } catch (err) {
-        console.error("getAllIncidents error:", err);
-        throw err;
+      if (!actor) {
+        throw new Error("Actor not initialized yet");
       }
+      const result = await actor.getAllIncidents();
+      return result;
     },
     enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 10_000,
+    retry: 2,
+  });
+}
+
+export function useGetIncident(incidentId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<IncidentDTO | null>({
+    queryKey: ["incident", incidentId],
+    queryFn: async () => {
+      if (!actor) throw new Error("Actor not initialized yet");
+      return actor.getIncident(incidentId);
+    },
+    enabled: !!actor && !isFetching && !!incidentId,
+    staleTime: 10_000,
   });
 }
 
@@ -128,8 +137,10 @@ export function useDeleteIncident() {
 export function useIsIdAlreadyUsed() {
   const { actor } = useActor();
 
-  return async (id: string): Promise<boolean> => {
-    if (!actor) return false;
-    return actor.isIdAlreadyUsed(id);
-  };
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!actor) throw new Error("Actor not initialized");
+      return actor.isIdAlreadyUsed(id);
+    },
+  });
 }
