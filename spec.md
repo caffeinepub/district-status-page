@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add a keyword search filter to the public Dashboard and enable deletion of resolved incidents in the Admin Panel.
+**Goal:** Fix the frontend-to-backend connection so that incidents load successfully on the Dashboard and Admin Panel without errors.
 
 **Planned changes:**
-- Add a search/filter input above the incident list on the Dashboard that filters both active and resolved incidents in real time by title, affected service, and description
-- Show a "no results" message when no incidents match the search term
-- Add a `deleteIncident(id: Text)` function to the Motoko backend actor that only allows deletion of resolved incidents, returning errors for non-existent or non-resolved incident IDs
-- Add a delete button to resolved incidents in the Admin Panel with a confirmation dialog before proceeding
-- Add a `useDeleteIncident` mutation hook that calls the backend and invalidates the `getAllIncidents` cache on success
+- Audit and fix the canister ID environment variable so it is correctly referenced and available at runtime
+- Ensure the `useActor` hook produces a valid actor instance with anonymous identity for public queries
+- Fix the `useQueries` hooks (especially `getAllIncidents`) to receive a non-null actor and invoke backend calls correctly
+- Resolve any provider wrapping or module initialization order issues in `App.tsx` (e.g., `ThemeProvider`, `QueryClientProvider`, `InternetIdentityProvider` ordering) that may silently prevent actor creation
 
-**User-visible outcome:** Public users can search and filter incidents on the Dashboard in real time. Admins can delete resolved incidents from the Admin Panel after confirming, and the incident list updates immediately across both the dashboard and admin panel.
+**User-visible outcome:** Incidents load and display correctly on both the Dashboard and Admin Panel on page load, with no "Failed to load incidents / Unable to connect to the backend" error appearing.

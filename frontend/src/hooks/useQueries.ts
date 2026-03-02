@@ -1,52 +1,28 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { type IncidentDTO, type Severity, DeleteIncidentResult } from '../backend';
-
-export const INCIDENTS_QUERY_KEY = ['incidents'];
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useActor } from "./useActor";
+import { Severity, Status } from "../backend";
 
 export function useGetAllIncidents() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<IncidentDTO[]>({
-    queryKey: INCIDENTS_QUERY_KEY,
+  return useQuery({
+    queryKey: ["incidents"],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not initialized');
-      const result = await actor.getAllIncidents();
-      // Sort by updatedAt descending
-      return [...result].sort((a, b) => Number(b.updatedAt - a.updatedAt));
+      if (!actor) return [];
+      try {
+        const result = await actor.getAllIncidents();
+        return result ?? [];
+      } catch (err) {
+        console.error("getAllIncidents error:", err);
+        throw err;
+      }
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 30_000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   });
-}
-
-export function useGetIncident(incidentId: string) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<IncidentDTO | null>({
-    queryKey: ['incident', incidentId],
-    queryFn: async () => {
-      if (!actor || !incidentId) return null;
-      return actor.getIncident(incidentId);
-    },
-    enabled: !!actor && !isFetching && !!incidentId,
-  });
-}
-
-/**
- * Returns an imperative async function that checks whether an incident ID is
- * already in use. This allows the CreateIncidentForm to call it on demand
- * during form submission rather than as a reactive query.
- */
-export function useIsIdAlreadyUsed() {
-  const { actor } = useActor();
-
-  return async (id: string): Promise<boolean> => {
-    if (!actor) throw new Error('Actor not initialized');
-    return actor.isIdAlreadyUsed(id);
-  };
 }
 
 export function useCreateIncident() {
@@ -67,11 +43,11 @@ export function useCreateIncident() {
       affectedService: string;
       severity: Severity;
     }) => {
-      if (!actor) throw new Error('Actor not initialized');
+      if (!actor) throw new Error("Actor not initialized");
       return actor.createIncident(id, title, description, affectedService, severity);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
     },
   });
 }
@@ -96,11 +72,11 @@ export function useAddUpdate() {
       severity: Severity;
       message: string;
     }) => {
-      if (!actor) throw new Error('Actor not initialized');
+      if (!actor) throw new Error("Actor not initialized");
       return actor.addUpdate(incidentId, title, description, affectedService, severity, message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
     },
   });
 }
@@ -125,11 +101,11 @@ export function useChangeStatus() {
       severity: Severity;
       newStatus: string;
     }) => {
-      if (!actor) throw new Error('Actor not initialized');
+      if (!actor) throw new Error("Actor not initialized");
       return actor.changeStatus(incidentId, title, description, affectedService, severity, newStatus);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
     },
   });
 }
@@ -140,18 +116,20 @@ export function useDeleteIncident() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!actor) throw new Error('Actor not initialized');
-      const result = await actor.deleteIncident(id);
-      if (result === DeleteIncidentResult.notFound) {
-        throw new Error('Incident not found.');
-      }
-      if (result === DeleteIncidentResult.notResolved) {
-        throw new Error('Only resolved incidents can be deleted.');
-      }
-      return result;
+      if (!actor) throw new Error("Actor not initialized");
+      return actor.deleteIncident(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INCIDENTS_QUERY_KEY, refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
     },
   });
+}
+
+export function useIsIdAlreadyUsed() {
+  const { actor } = useActor();
+
+  return async (id: string): Promise<boolean> => {
+    if (!actor) return false;
+    return actor.isIdAlreadyUsed(id);
+  };
 }

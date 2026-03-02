@@ -1,82 +1,42 @@
 {
   "kind": "build_request",
-  "title": "Add search filter to dashboard and delete resolved incidents in admin panel",
+  "title": "Fix incidents failing to load (frontend-to-backend connection)",
   "projectName": "District Status Page",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-7",
-      "text": "Add a search/filter input to the public-facing Dashboard that allows users to filter displayed incidents by keyword. The filter should match against incident title, affected system/service, and description fields. Both active and resolved incident sections should be filtered simultaneously. The filter input should be visible above the incident list and update results in real time as the user types. If no incidents match the search term, display a clear 'no results' message.",
+      "id": "REQ-13",
+      "text": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel. The 'Failed to load incidents / Unable to connect to the backend' error must not appear. Audit the full data path: verify the canister ID environment variable is correctly referenced and available at runtime, confirm the useActor hook produces a valid actor instance with anonymous identity for public queries, confirm the useQueries hooks (especially getAllIncidents) receive a non-null actor and invoke backend calls correctly, and ensure no module initialization order or provider wrapping issue (e.g., from ThemeProvider, QueryClientProvider, or InternetIdentityProvider ordering in App.tsx or main.tsx) is silently preventing actor creation. Fix all identified root causes so incidents are fetched and displayed correctly on page load.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "msg-6"
         ],
         "quotes": [
-          "I would like a filter by search."
+          "The incidents still fail to load. Fix this."
         ]
       },
       "acceptanceCriteria": [
-        "A search input field is visible on the Dashboard above the incident sections",
-        "Typing in the search field filters incidents in real time without a page reload",
-        "Filtering matches against incident title, affected system/service, and description",
-        "Both the active and resolved incident sections are filtered by the same search term",
-        "When no incidents match the search term, a 'no results' message is shown",
-        "When the search field is cleared, all incidents are shown again"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Add a deleteIncident backend function to the Motoko actor that accepts an incident ID and removes the incident from the store. Only incidents with a 'resolved' status should be deletable; attempts to delete non-resolved incidents should return an error variant.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "I would also like to delete resolved incidents if I need to."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A deleteIncident(id: Text) function exists in the backend actor",
-        "The function returns an ok result when a resolved incident is successfully deleted",
-        "The function returns an error result if the incident ID does not exist",
-        "The function returns an error result if the incident's status is not resolved",
-        "Calling getAllIncidents after deletion no longer returns the deleted incident"
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "text": "Add a delete button to each resolved incident in the Admin Panel. Clicking the button should call the deleteIncident backend function for that incident. After a successful deletion, the React Query cache for getAllIncidents must be invalidated so the admin panel and dashboard reflect the removal immediately. The delete action should require a confirmation step (e.g., a confirmation dialog or prompt) to prevent accidental deletions. The delete button should only appear for incidents with resolved status.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "I would also like to delete resolved incidents if I need to."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A delete button is visible on resolved incidents in the Admin Panel",
-        "No delete button appears on non-resolved incidents",
-        "Clicking the delete button shows a confirmation prompt before proceeding",
-        "Confirming the deletion calls deleteIncident and removes the incident",
-        "After deletion, the incident list in the admin panel and dashboard is updated immediately",
-        "A useDeleteIncident mutation hook exists in useQueries.ts and invalidates the getAllIncidents cache on success"
+        "The Dashboard loads and displays incidents from the backend without showing any error message.",
+        "The Admin Panel loads incident data from the backend without showing any error message.",
+        "The useActor hook returns a valid actor instance for anonymous (public) queries.",
+        "The getAllIncidents React Query hook successfully calls the backend and returns incident data.",
+        "No console errors related to canister ID, actor initialization, or backend connection appear on page load.",
+        "The light/dark mode ThemeToggle continues to function correctly alongside the working backend connection.",
+        "Internet Identity authentication on the /admin route continues to function correctly."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths",
-    "Only resolved incidents may be deleted; the backend must enforce this constraint",
-    "The search filter must be client-side only and must not add new backend queries"
+    "Do not modify files listed in frontend.immutablePaths: useInternetIdentity.ts, useActor.ts, main.tsx, and frontend/src/components/ui.",
+    "Do not change the backend Motoko actor or data model.",
+    "The light/dark mode toggle (ThemeToggle, useTheme) must remain functional after the fix.",
+    "Internet Identity authentication on /admin must remain functional after the fix."
   ],
   "nonGoals": [
-    "Filtering or searching incidents from the Admin Panel",
-    "Bulk deletion of multiple incidents at once",
-    "Deleting non-resolved (active) incidents",
-    "Adding pagination or sorting controls to the dashboard"
+    "Adding new features or UI changes unrelated to fixing the backend connection.",
+    "Changing the backend Motoko actor logic.",
+    "Modifying the authentication flow beyond what is needed to restore the connection."
   ],
   "imageRequirements": {
     "required": [],

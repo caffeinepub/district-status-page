@@ -2,6 +2,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { Activity, Settings, Heart, LogOut, Loader2 } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from './ThemeToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -57,6 +58,9 @@ export function Layout({ children }: LayoutProps) {
               <Settings className="w-3.5 h-3.5" />
               Admin
             </Link>
+
+            {/* Theme toggle */}
+            <ThemeToggle />
 
             {/* Logout button — only shown in header when on admin route and authenticated */}
             {isAdmin && isAuthenticated && !isInitializing && (

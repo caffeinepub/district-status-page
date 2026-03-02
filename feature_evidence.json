@@ -1,42 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-add-a-search-filter-input-to-the-public-facing-dashboard-that-allows-users-to-filter-displayed-incidents-by-keyword-the-filter-should-match-against-incident-title-affected-system-service-and-description-fields-both-active-and-resolved-incident-sections-should-be-filtered-simultaneously-the-filter-input-should-be-visible-above-the-incident-list-and-update-results-in-real-time-as-the-user-types-if-no-incidents-match-the-search-term-display-a-clear-no-results-message",
-      "featureTitle": "Add a search/filter input to the public-facing Dashboard that allows users to filter displayed incidents by keyword. The filter should match against incident title, affected system/service, and description fields. Both active and resolved incident sections should be filtered simultaneously. The filter input should be visible above the incident list and update results in real time as the user types. If no incidents match the search term, display a clear 'no results' message.",
-      "files": [
-        "frontend/src/pages/Dashboard.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-delete-button-to-each-resolved-incident-in-the-admin-panel-clicking-the-button-should-call-the-deleteincident-backend-function-for-that-incident-after-a-successful-deletion-the-react-query-cache-for-getallincidents-must-be-invalidated-so-the-admin-panel-and-dashboard-reflect-the-removal-immediately-the-delete-action-should-require-a-confirmation-step-e-g-a-confirmation-dialog-or-prompt-to-prevent-accidental-deletions-the-delete-button-should-only-appear-for-incidents-with-resolved-status",
-      "featureTitle": "Add a delete button to each resolved incident in the Admin Panel. Clicking the button should call the deleteIncident backend function for that incident. After a successful deletion, the React Query cache for getAllIncidents must be invalidated so the admin panel and dashboard reflect the removal immediately. The delete action should require a confirmation step (e.g., a confirmation dialog or prompt) to prevent accidental deletions. The delete button should only appear for incidents with resolved status.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AdminPanel.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

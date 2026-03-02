@@ -1,48 +1,50 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add search filter to dashboard and delete resolved incidents in admin panel",
+  "title": "Fix incidents failing to load (frontend-to-backend connection)",
   "requirements": [
     {
-      "id": "REQ-7",
-      "summary": "Add a search/filter input to the public-facing Dashboard that filters displayed incidents by keyword in real time",
+      "id": "REQ-13",
+      "summary": "Diagnose and fix the frontend-to-backend connection so that incidents load successfully on both the Dashboard and Admin Panel, eliminating 'Failed to load incidents / Unable to connect to the backend' errors by auditing the full data path including canister ID configuration, useActor hook initialization, useQueries hook invocation, and provider ordering",
       "acceptanceCriteria": [
-        "A search input field is visible on the Dashboard above the incident sections",
-        "Typing in the search field filters incidents in real time without a page reload",
-        "Filtering matches against incident title, affected system/service, and description",
-        "Both the active and resolved incident sections are filtered by the same search term",
-        "When no incidents match the search term, a 'no results' message is shown",
-        "When the search field is cleared, all incidents are shown again"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Add a controlled search input above the incident list sections. Implement client-side filtering logic using useMemo to filter incidents array based on search term matching against title, affectedService, and description fields. Apply the same filter to both active and resolved incident sections. Display a 'No incidents match your search' message when the filtered arrays are empty and search term is not empty. Use the shadcn-ui Input component for the search field."
-        }
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "summary": "Add a delete button to each resolved incident in the Admin Panel with confirmation dialog",
-      "acceptanceCriteria": [
-        "A delete button is visible on resolved incidents in the Admin Panel",
-        "No delete button appears on non-resolved incidents",
-        "Clicking the delete button shows a confirmation prompt before proceeding",
-        "Confirming the deletion calls deleteIncident and removes the incident",
-        "After deletion, the incident list in the admin panel and dashboard is updated immediately",
-        "A useDeleteIncident mutation hook exists in useQueries.ts and invalidates the getAllIncidents cache on success"
+        "The Dashboard loads and displays incidents from the backend without showing any error message.",
+        "The Admin Panel loads incident data from the backend without showing any error message.",
+        "The useActor hook returns a valid actor instance for anonymous (public) queries.",
+        "The getAllIncidents React Query hook successfully calls the backend and returns incident data.",
+        "No console errors related to canister ID, actor initialization, or backend connection appear on page load.",
+        "The light/dark mode ThemeToggle continues to function correctly alongside the working backend connection.",
+        "Internet Identity authentication on the /admin route continues to function correctly."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a useDeleteIncident mutation hook that calls the backend deleteIncident function with an incident ID. On successful deletion, invalidate the 'incidents' query key to refresh the getAllIncidents cache. Handle the DeleteIncidentResult enum variants (success, notFound, notResolved) and return appropriate success/error states to the UI."
+          "description": "Fix the getAllIncidents query by ensuring it correctly handles the actor instance: add null check for actor before calling getAllIncidents, ensure enabled flag properly waits for actor availability, add error handling for backend connection failures, and verify the query returns data in the correct format expected by Dashboard and AdminPanel components"
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Add robust error handling and loading state management for the incidents query: ensure the component properly waits for both actor initialization and data fetching, add user-friendly error messages distinguishing between actor initialization failures and data fetch failures, verify the incidents array is safely handled when undefined or null, and add console logging for debugging the data flow from useGetAllIncidents to rendering"
         },
         {
           "path": "frontend/src/pages/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Add a new 'Delete Resolved' tab that displays all resolved incidents from the getAllIncidents query. For each resolved incident, render an IncidentCard with a delete button. Wire the delete button to open a shadcn-ui AlertDialog for confirmation. On confirmation, call the useDeleteIncident mutation. Display success/error toast notifications based on mutation result. Use the shadcn-ui AlertDialog component for the confirmation prompt."
+          "description": "Add comprehensive error handling and loading state management for the incidents query in the admin context: ensure the component waits for both authentication and actor initialization before fetching data, add clear error messaging for backend connection issues distinct from authentication failures, verify that all form components receive valid incident data arrays, and add debug logging to trace the authenticated actor creation and query execution flow"
+        },
+        {
+          "path": "frontend/src/components/CreateIncidentForm.tsx",
+          "operation": "modify",
+          "description": "Add defensive null checks and error handling for the actor-dependent ID validation: ensure the isIdAlreadyUsed query properly handles null or undefined actor instances, add appropriate loading and error states for the ID uniqueness check, prevent form submission when actor is unavailable, and provide clear user feedback when backend validation cannot be performed due to connection issues"
+        },
+        {
+          "path": "frontend/src/components/AddUpdateForm.tsx",
+          "operation": "modify",
+          "description": "Add error handling for actor availability in the incident selection and update submission flow: ensure the incidents dropdown safely handles loading and error states from useGetAllIncidents, add null checks before accessing actor-dependent data, provide user feedback when backend connection is unavailable, and verify the mutation properly waits for a valid actor instance"
+        },
+        {
+          "path": "frontend/src/components/ChangeStatusForm.tsx",
+          "operation": "modify",
+          "description": "Add robust error handling for actor-dependent incident loading and status changes: ensure the incident selector safely handles null or undefined incidents array, add appropriate loading states while fetching incident data, provide clear error messages when backend is unavailable, and verify the status change mutation waits for actor initialization before attempting the operation"
         }
       ]
     }
